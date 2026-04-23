@@ -13,7 +13,7 @@ cleaned_data <- raw_data %>%
   filter(!grepl("contam", `Protein ID`, ignore.case = TRUE)) %>%
   filter(!grepl("rev_", `Protein ID`, ignore.case = TRUE))
 
-# 3. SELECT QUANTITATION
+# 3. QUANTITATION
 quant_data <- cleaned_data %>%
   dplyr::select(`Protein ID`, Gene, contains("MaxLFQ")) %>%
   clean_names()
@@ -42,7 +42,7 @@ group_factor <- factor(groups, levels = c("Input", "Pulldown"))
 design <- model.matrix(~ 0 + group_factor)
 colnames(design) <- levels(group_factor)
 
-# 8. LINEAR MODEL (LIMMA)
+# 8. LINEAR MODEL
 contrast_matrix <- makeContrasts(Pulldown - Input, levels = design)
 fit <- lmFit(data_imputed[, numeric_cols], design)
 fit_contrast <- contrasts.fit(fit, contrast_matrix)
@@ -67,7 +67,7 @@ results_annotated <- results %>%
     TRUE ~ "Not Significant"
   ))
 
-# 10. PLOTTING VOLCANO
+# 10. VOLCANO PLOT
 ggplot(results_annotated, aes(x = logFC, y = neg_log10_p, color = color_category)) +
   geom_point(alpha = 0.6, size = 1.5) +
   scale_color_manual(values = c("red", "blue", "grey")) +
