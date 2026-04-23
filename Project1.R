@@ -6,7 +6,6 @@ library(org.Hs.eg.db)
 library(enrichplot)
 
 # 1. LOAD DATA
-# Use your original .tsv file (FragPipe output)
 raw_data <- read_tsv(file.choose())
 
 # 2. CLEANING
@@ -15,7 +14,6 @@ cleaned_data <- raw_data %>%
   filter(!grepl("rev_", `Protein ID`, ignore.case = TRUE))
 
 # 3. SELECT QUANTITATION
-# Using dplyr::select to prevent the 'spec_tbl_df' error
 quant_data <- cleaned_data %>%
   dplyr::select(`Protein ID`, Gene, contains("MaxLFQ")) %>%
   clean_names()
@@ -25,16 +23,13 @@ log_data <- quant_data %>%
   mutate(across(where(is.numeric), ~ log2(. + 1)))
 
 # 5. FILTERING
-# Keep proteins with at least 2 values in either group
 log_filtered <- log_data %>%
   filter(
     (rowSums(!is.na(dplyr::select(., starts_with("input_proteome_")))) >= 2) |
       (rowSums(!is.na(dplyr::select(., starts_with("streptavidin_pulldown_")))) >= 2)
   )
 
-# 6. IMPUTATION (FIXED THE NA ERROR)
-# We calculate the minimum of ONLY the numeric intensity columns
-# We only fill NAs in columns 3 to 8 (the actual data)
+# 6. IMPUTATION
 numeric_cols <- 3:8
 min_val <- min(as.matrix(log_filtered[, numeric_cols]), na.rm = TRUE)
 
@@ -56,7 +51,6 @@ fit_ebayes <- eBayes(fit_contrast)
 # 9. RESULTS ANNOTATION
 results <- topTable(fit_ebayes, number = Inf, sort.by = "P")
 
-# We join back to data_imputed to get the Gene names
 results_annotated <- results %>%
   mutate(row_idx = as.numeric(rownames(.))) %>%
   left_join(
