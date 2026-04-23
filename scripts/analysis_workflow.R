@@ -78,4 +78,4 @@ ego <- enrichGO(gene          = enriched_genes,
                 pAdjustMethod = "BH")
 
 dotplot(ego, showCategory=15)
-ggsave("05_biological_pathways_dotplot.png", width = 10, height = 8)
+ggsave("03_biological_pathways_dotplot.png", width = 10, height = 8)
