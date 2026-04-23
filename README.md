@@ -3,7 +3,7 @@
 # Reanalysis of the Of Stress Granule proteome to understand Neurodegeneration
 
 This repository contains my R-based re-analysis of the proteomics data associated with the study: 
-"Context-Dependent and Disease-Specific Diversity in Protein Interactions within Stress Granules"** (Markmiller et al., Cell 2018).
+"Context-Dependent and Disease-Specific Diversity in Protein Interactions within Stress Granules"(Markmiller et al., Cell 2018).
 
 ## Data Source
 The dataset used in this project is sourced from MassIVE(ID: MSV000081554).
