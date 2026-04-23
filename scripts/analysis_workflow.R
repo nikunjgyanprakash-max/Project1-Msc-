@@ -5,50 +5,41 @@ library(clusterProfiler)
 library(org.Hs.eg.db)
 library(enrichplot)
 
-# 1. LOAD DATA
 raw_data <- read_tsv("../data/combined_protein_label_quant.csv")
 
-# 2. CLEANING
 cleaned_data <- raw_data %>%
   filter(!grepl("contam", `Protein ID`, ignore.case = TRUE)) %>%
   filter(!grepl("rev_", `Protein ID`, ignore.case = TRUE))
 
-# 3. QUANTITATION
 quant_data <- cleaned_data %>%
   dplyr::select(`Protein ID`, Gene, contains("MaxLFQ")) %>%
   clean_names()
 
-# 4. LOG TRANSFORMATION
 log_data <- quant_data %>%
   mutate(across(where(is.numeric), ~ log2(. + 1)))
 
-# 5. FILTERING
 log_filtered <- log_data %>%
   filter(
     (rowSums(!is.na(dplyr::select(., starts_with("input_proteome_")))) >= 2) |
       (rowSums(!is.na(dplyr::select(., starts_with("streptavidin_pulldown_")))) >= 2)
   )
 
-# 6. IMPUTATION
 numeric_cols <- 3:8
 min_val <- min(as.matrix(log_filtered[, numeric_cols]), na.rm = TRUE)
 
 data_imputed <- log_filtered
 data_imputed[, numeric_cols][is.na(data_imputed[, numeric_cols])] <- min_val * 0.9
 
-# 7. EXPERIMENTAL DESIGN
 groups <- c("Input", "Input", "Input", "Pulldown", "Pulldown", "Pulldown")
 group_factor <- factor(groups, levels = c("Input", "Pulldown"))
 design <- model.matrix(~ 0 + group_factor)
 colnames(design) <- levels(group_factor)
 
-# 8. LINEAR MODEL
 contrast_matrix <- makeContrasts(Pulldown - Input, levels = design)
 fit <- lmFit(data_imputed[, numeric_cols], design)
 fit_contrast <- contrasts.fit(fit, contrast_matrix)
 fit_ebayes <- eBayes(fit_contrast)
 
-# 9. RESULTS ANNOTATION
 results <- topTable(fit_ebayes, number = Inf, sort.by = "P")
 
 results_annotated <- results %>%
@@ -67,7 +58,6 @@ results_annotated <- results %>%
     TRUE ~ "Not Significant"
   ))
 
-# 10. VOLCANO PLOT
 ggplot(results_annotated, aes(x = logFC, y = neg_log10_p, color = color_category)) +
   geom_point(alpha = 0.6, size = 1.5) +
   scale_color_manual(values = c("red", "blue", "grey")) +
@@ -76,7 +66,6 @@ ggplot(results_annotated, aes(x = logFC, y = neg_log10_p, color = color_category
 
 ggsave("02_volcano_plot_results.png", width = 8, height = 6)
 
-# 11. GO ENRICHMENT
 enriched_genes <- results_annotated %>%
   filter(adj.P.Val < 0.05, logFC > 1) %>%
   pull(gene) %>%
