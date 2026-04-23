@@ -6,7 +6,7 @@ library(org.Hs.eg.db)
 library(enrichplot)
 
 # 1. LOAD DATA
-raw_data <- read_tsv(file.choose())
+raw_data <- read_tsv("../data/combined_protein_label_quant.csv")
 
 # 2. CLEANING
 cleaned_data <- raw_data %>%
